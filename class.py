@@ -16,6 +16,7 @@ dt = dt.strftime("%d.%m.%Y")
 ip_list_all = ["192.168.10.51", "192.168.10.52", "192.168.10.53", "192.168.10.54", "192.168.10.55", "192.168.10.56", "192.168.10.57", "192.168.10.58", "192.168.10.59", "192.168.10.60"]
 ip_list = []
 tex = dict()
+text_comp = dict()
 
 # Функции
 def ping_class(ip):
@@ -80,25 +81,24 @@ def com_download(ip, file_):
 # Кнопки
 
 def button_ping(event):
-    print("Ping class")
+    text_command.insert(END, "Ping")
     ip_list.clear()
     for ip in ip_list_all:
         threading.Thread(target=ping_class, args=[ip]).start()
 
 def button_update(event):
-#    print("Обновляем %s ...\r" % (ip), end="")
+    text_command.insert(END, "Обновляем")
     for ip in ip_list_all:
         print("Обновляем %s ...\r" % (ip), end="")
         threading.Thread(target=update, args=[ip]).start()
 
 def button_ntpdate(event):
-    print("ntpdate")
+    text_command.insert(END, "ntpdate")
     for ip in ip_list:
         threading.Thread(target=com, args=[ip, 'ntpdate -s 192.168.10.1']).start()
 
 def button_reboot(event):
-    print("Перезагружаем")
-    print(ip_list)
+    text_command.insert(END, "Перезагружаем")
     for ip in ip_list:
         threading.Thread(target=com, args=[ip, 'reboot']).start()
 
@@ -137,17 +137,17 @@ def button_download(event):
 # Меню
 
 def new_win():
-     win = Toplevel(root)
+    win = Toplevel(root)
  
 def close_win():
 #     global root
 #     root.destroy()
-     root.quit()
+    root.quit()
  
 def about():
-     win = Toplevel(root)
-     lab = Label(win,text="Это просто программа-тест \n меню в Tkinter")
-     lab.pack() 
+    win = Toplevel(root)
+    lab = Label(win,text="Это просто программа-тест \n меню в Tkinter")
+    lab.pack() 
 
 # Окошки
 
@@ -157,12 +157,16 @@ m = Menu(root) #создается объект Меню на главном о�
 root.config(menu=m) #окно конфигурируется с указанием меню для него
 
 frame_button = Frame(root,width=100,heigh=100,bd=5)
-frame_txt = Frame(root,width=100,heigh=100,bd=5)
-
-text_command = Entry(frame_txt,width=40, font="Verdana 12")
+frame_info = Frame(root,width=50,heigh=100,bd=5)
+frame_txt = Frame(root,width=50,heigh=100,bd=5)
 
 for ip in ip_list_all:
-    tex[ip] = Entry(frame_txt,width=10, font="Verdana 12")
+    text_comp[ip] = Label(frame_info, text=ip, font="Verdana 12")
+
+text_command = Entry(frame_txt,width=30, font="Verdana 12")
+
+for ip in ip_list_all:
+    tex[ip] = Entry(frame_txt,width=6, font="Verdana 12")
 
 ent = Entry(frame_button,width=40)
 
@@ -211,7 +215,8 @@ hm.add_command(label="Help")
 hm.add_command(label="About",command=about) 
 
 frame_button.grid(row=0, column=0, sticky='n')
-frame_txt.grid(row=0, column=1, rowspan=2)
+frame_info.grid(row=0, column=1, rowspan=2)
+frame_txt.grid(row=0, column=2, rowspan=2)
 
 but2.pack()
 but3.pack()
@@ -225,6 +230,9 @@ but10.pack()
 
 # Конец
 but99.pack()
+
+for ip in ip_list_all:
+    text_comp[ip].pack()
 
 text_command.pack()
 
