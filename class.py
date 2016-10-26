@@ -4,23 +4,28 @@
 # "ssh " + ip + " \'export DISPLAY=:0; nohup firefox \'438school.spb.ru\' \' >/dev/null"
 # "ssh " + ip + " \'export DISPLAY=:0; notify-send "Система оповещения" "Пример работы" \' >/dev/null"
 
-import threading, time
+import threading, time, os
+from datetime import datetime
 from tkinter import *
 from subprocess import *
 from colored import fg, bg, attr
 
+dt = datetime.now()
+dt = dt.strftime("%d.%m.%Y")
+
 ip_list_all = ["192.168.10.51", "192.168.10.52", "192.168.10.53", "192.168.10.54", "192.168.10.55", "192.168.10.56", "192.168.10.57", "192.168.10.58", "192.168.10.59", "192.168.10.60"]
 ip_list = []
+tex = dict()
 
 # Функции
 def ping_class(ip):
     try:
         check_call(["ping -c 1 " + ip +" >/dev/null"], shell = True)
         ip_list.append(ip)
-        text = "ping %s OK\n" % (ip)
+        text = "OK" 
     except:
-        text = "ping %s ERROR\n" % (ip)
-    tex.insert(END, text)
+        text = "ERROR" 
+    tex[ip].insert(END, text)
 
 def update(ip):
     try:
@@ -105,24 +110,29 @@ def button_shutdown(event):
 # Команды ученика
 
 def button_link(event):
+    s = ent.get()
     print("Открыть ссылку")
+    print(s)
     for ip in ip_list:
-        threading.Thread(target=com_uchenik, args=[ip, 'firefox \"438school.spb.ru\"']).start()
+        threading.Thread(target=com_uchenik, args=[ip, 'firefox \"%s\"' % s ]).start()
         
 def button_send(event):
+    s = ent.get()
     print("Сообщение")
+    print(s)
     for ip in ip_list:
-        threading.Thread(target=com_uchenik, args=[ip, 'firefox \"438school.spb.ru\"']).start()
+        threading.Thread(target=com_uchenik, args=[ip, 'export DISPLAY=:0; notify-send "Система оповещения" "%s"' % s ]).start()
 
 def button_upload(event):
     print("Загрузить файл")
     for ip in ip_list:
         threading.Thread(target=com_upload, args=[ip, 'firefox \"438school.spb.ru\"']).start()
 
-def button_dovnload(event):
+def button_download(event):
     print("Собрать работы")
+    os.mkdir(dt, mode=0o777, dir_fd=None) 
     for ip in ip_list:
-        threading.Thread(target=com_dovnload, args=[ip, 'firefox \"438school.spb.ru\"']).start()
+        threading.Thread(target=com_download, args=[ip, 'firefox \"438school.spb.ru\"']).start()
 
 # Меню
 
@@ -130,7 +140,9 @@ def new_win():
      win = Toplevel(root)
  
 def close_win():
-     root.destroy()
+#     global root
+#     root.destroy()
+     root.quit()
  
 def about():
      win = Toplevel(root)
@@ -147,7 +159,10 @@ root.config(menu=m) #окно конфигурируется с указание
 frame_button = Frame(root,width=100,heigh=100,bd=5)
 frame_txt = Frame(root,width=100,heigh=100,bd=5)
 
-tex = Text(frame_txt,width=40, font="Verdana 12")
+text_command = Entry(frame_txt,width=40, font="Verdana 12")
+
+for ip in ip_list_all:
+    tex[ip] = Entry(frame_txt,width=10, font="Verdana 12")
 
 ent = Entry(frame_button,width=40)
 
@@ -175,7 +190,7 @@ but8.bind("<Button-1>",button_send)
 but9 = Button(frame_button, text='Загрузить файл', width=20, font='arial 14')
 but9.bind("<Button-1>",button_upload)
 but10 = Button(frame_button, text='Собрать работы', width=20, font='arial 14')
-but10.bind("<Button-1>",button_dovnload)
+but10.bind("<Button-1>",button_download)
 
 
 but99 = Button(frame_button, text='Закрыть', width=20, font='arial 14')
@@ -210,12 +225,19 @@ but10.pack()
 
 # Конец
 but99.pack()
-tex.pack()
+
+text_command.pack()
+
+for ip in ip_list_all:
+    tex[ip].pack()
+
 ent.pack()
 
 # Старт системы
 
 print("Ping class")
+text_command.insert(END, "Ping")
+
 for ip in ip_list_all:
     threading.Thread(target=ping_class, args=[ip]).start()
 
