@@ -163,15 +163,7 @@ frame_txt = Frame(root,width=50,heigh=100,bd=5)
 text_comp0 = Label(frame_info, text="Команда", font="Verdana 12")
 text_command = Entry(frame_txt,width=30, font="Verdana 12")
 
-#for ip in ip_list_all:
-#    text_comp[ip] = Label(frame_info, text=ip, font="Verdana 12")
-#    tex[ip] = Entry(frame_txt,width=6, font="Verdana 12")
-
 ent = Entry(frame_button,width=40)
-
-#but = Button(root)
-#but["text"] = "ping" 
-#but.bind("<Button-1>",printer)
 
 but2 = Button(frame_button)
 but2["text"] = "ping class" 
@@ -194,7 +186,6 @@ but9 = Button(frame_button, text='Загрузить файл', width=20, font='
 but9.bind("<Button-1>",button_upload)
 but10 = Button(frame_button, text='Собрать работы', width=20, font='arial 14')
 but10.bind("<Button-1>",button_download)
-
 
 but99 = Button(frame_button, text='Закрыть', width=20, font='arial 14')
 but99.bind("<Button-1>",close_win)
@@ -231,9 +222,6 @@ but10.pack()
 but99.pack()
 
 text_comp0.pack()
-#for ip in ip_list_all:
-#    text_comp[ip].pack()
-
 text_command.pack()
 
 # Вся правая колонка запихнута в один цикл. 
