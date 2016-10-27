@@ -45,30 +45,30 @@ def shutdown(ip):
     tex.insert(END, text)
 
 def com(ip, command):
-	try:
-		check_call(["ssh " + ip + " \'sudo " + command + " \' >/dev/null"], shell = True)
-		text="%s %s OK\n" % (command, ip)
-	except:
-		text="%s %s ERROR\n" % (command, ip)
-	tex.insert(END, text)
+    try:
+        check_call(["ssh " + ip + " \'sudo " + command + " \' >/dev/null"], shell = True)
+        text = "OK"
+    except:
+        text = "ERROR"
+    tex[ip].insert(END, text)
 
 # Функции ученика
 
 def com_uchenik(ip, command):
-	try:
-		check_call(["ssh uchenik@" + ip + " \'export DISPLAY=:0; " + command + " \' >/dev/null"], shell = True)
-		text="%s %s OK\n" % (command, ip)
-	except:
-		text="%s %s ERROR\n" % (command, ip)
-	tex.insert(END, text)
+    try:
+        check_call(["ssh uchenik@" + ip + " \'export DISPLAY=:0; " + command + " \' >/dev/null"], shell = True)
+        text = "OK"
+    except:
+        text = "ERROR"
+    tex[ip].insert(END, text)
 
 def com_upload(ip, file_):
-	try:
-		check_call(["scp "+ file_ + "uchenik@" + ip + ":/home/uchenik/Material"], shell = True)
-		text="Загрузка файла %s на %s OK\n" % (file_, ip)
-	except:
-		text="Загрузка файла %s на %s ERROR\n" % (file_, ip)
-	tex.insert(END, text)
+    try:
+        check_call(["scp "+ file_ + "uchenik@" + ip + ":/home/uchenik/Material"], shell = True)
+        text="Загрузка файла %s на %s OK\n" % (file_, ip)
+    except:
+        text="Загрузка файла %s на %s ERROR\n" % (file_, ip)
+    tex.insert(END, text)
 	
 def com_download(ip, file_):
 	try:
@@ -84,17 +84,20 @@ def button_ping(event):
     text_command.insert(END, "Ping")
     ip_list.clear()
     for ip in ip_list_all:
+        tex[ip].delete(0,END)
         threading.Thread(target=ping_class, args=[ip]).start()
 
 def button_update(event):
     text_command.insert(END, "Обновляем")
     for ip in ip_list_all:
+        tex[ip].delete(0,END) 
         print("Обновляем %s ...\r" % (ip), end="")
         threading.Thread(target=update, args=[ip]).start()
 
 def button_ntpdate(event):
     text_command.insert(END, "ntpdate")
-    for ip in ip_list:
+    for ip in ip_list:  
+        tex[ip].delete(0,END)
         threading.Thread(target=com, args=[ip, 'ntpdate -s 192.168.10.1']).start()
 
 def button_reboot(event):
@@ -107,20 +110,28 @@ def button_shutdown(event):
     for ip in ip_list:
         threading.Thread(target=shutdown, args=[ip]).start()     
 
+def button_com(event):
+    text_command.delete(0,END)
+    text_command.insert(END, "Команда")
+    for ip in ip_list:
+        tex[ip].delete(0,END)
+        threading.Thread(target=com, args=[ip, ent.get()]).start()
+
 # Команды ученика
 
 def button_link(event):
     s = ent.get()
-    print("Открыть ссылку")
-    print(s)
+    text_command.delete(0,END)
+    text_command.insert(END, "Открыть ссылку")
     for ip in ip_list:
         threading.Thread(target=com_uchenik, args=[ip, 'firefox \"%s\"' % s ]).start()
         
 def button_send(event):
     s = ent.get()
-    print("Сообщение")
-    print(s)
+    text_command.delete(0,END)
+    text_command.insert(END, "Сообщение")
     for ip in ip_list:
+        tex[ip].delete(0,END)
         threading.Thread(target=com_uchenik, args=[ip, 'export DISPLAY=:0; notify-send "Система оповещения" "%s"' % s ]).start()
 
 def button_upload(event):
@@ -186,6 +197,8 @@ but9 = Button(frame_button, text='Загрузить файл', width=20, font='
 but9.bind("<Button-1>",button_upload)
 but10 = Button(frame_button, text='Собрать работы', width=20, font='arial 14')
 but10.bind("<Button-1>",button_download)
+but11 = Button(frame_button, text='Выполнить команду', width=20, font='arial 14')
+but11.bind("<Button-1>",button_com)
 
 but99 = Button(frame_button, text='Закрыть', width=20, font='arial 14')
 but99.bind("<Button-1>",close_win)
@@ -217,6 +230,7 @@ but7.pack()
 but8.pack()
 but9.pack()
 but10.pack()
+but11.pack()
 
 # Конец
 but99.pack()
