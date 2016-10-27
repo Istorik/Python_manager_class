@@ -160,13 +160,12 @@ frame_button = Frame(root,width=100,heigh=100,bd=5)
 frame_info = Frame(root,width=50,heigh=100,bd=5)
 frame_txt = Frame(root,width=50,heigh=100,bd=5)
 
-for ip in ip_list_all:
-    text_comp[ip] = Label(frame_info, text=ip, font="Verdana 12")
-
+text_comp0 = Label(frame_info, text="Команда", font="Verdana 12")
 text_command = Entry(frame_txt,width=30, font="Verdana 12")
 
-for ip in ip_list_all:
-    tex[ip] = Entry(frame_txt,width=6, font="Verdana 12")
+#for ip in ip_list_all:
+#    text_comp[ip] = Label(frame_info, text=ip, font="Verdana 12")
+#    tex[ip] = Entry(frame_txt,width=6, font="Verdana 12")
 
 ent = Entry(frame_button,width=40)
 
@@ -231,12 +230,17 @@ but10.pack()
 # Конец
 but99.pack()
 
-for ip in ip_list_all:
-    text_comp[ip].pack()
+text_comp0.pack()
+#for ip in ip_list_all:
+#    text_comp[ip].pack()
 
 text_command.pack()
 
+# Вся правая колонка запихнута в один цикл. 
 for ip in ip_list_all:
+    text_comp[ip] = Label(frame_info, text=ip, font="Verdana 12")
+    tex[ip] = Entry(frame_txt,width=6, font="Verdana 12")
+    text_comp[ip].pack()
     tex[ip].pack()
 
 ent.pack()
@@ -252,6 +256,3 @@ for ip in ip_list_all:
 ip_list = ip_list_all if len(ip_list) == 0 else ip_list
 
 root.mainloop()
-
-
-
