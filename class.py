@@ -7,6 +7,8 @@
 import threading, time, os
 from datetime import datetime
 from tkinter import *
+from tkinter.filedialog import *
+from tkinter.messagebox import *
 from subprocess import *
 from colored import fg, bg, attr
 
@@ -19,6 +21,10 @@ tex = dict()
 text_comp = dict()
 
 # Функции
+def info(inf):
+    text_command.delete(0,END)
+    text_command.insert(END, inf)
+
 def ping_class(ip):
     try:
         check_call(["ping -c 1 " + ip +" >/dev/null"], shell = True)
@@ -31,18 +37,18 @@ def ping_class(ip):
 def update(ip):
     try:
         check_call(["ssh " + ip +" \'sudo aptitude update && sudo aptitude dist-upgrade -y \' >/dev/null"], shell = True)
-        text="Обновляем %s OK\n" % (ip)
+        text="OK"
     except:
-        text="Обновляем %s ERROR\n" % (ip) 
-    tex.insert(END, text)
+        text="ERROR" 
+    tex[ip].insert(END, text)
 
 def shutdown(ip):
     try:
         check_call(["ssh " + ip +" \'sudo shutdown -h now\' >/dev/null"], shell = True)
-        text="Выключаем %s OK\n" % (ip)
+        text="OK"
     except:
-        text="Выключаем %s ERROR\n" % (ip) 
-    tex.insert(END, text)
+        text="ERROR" 
+    tex[ip].insert(END, text)
 
 def com(ip, command):
     try:
@@ -56,7 +62,7 @@ def com(ip, command):
 
 def com_uchenik(ip, command):
     try:
-        check_call(["ssh uchenik@" + ip + " \'export DISPLAY=:0; " + command + " \' >/dev/null"], shell = True)
+        check_call(["ssh uchenik@" + ip + " \'" + command + "\' >/dev/null"], shell = True)
         text = "OK"
     except:
         text = "ERROR"
@@ -65,54 +71,55 @@ def com_uchenik(ip, command):
 def com_upload(ip, file_):
     try:
         check_call(["scp "+ file_ + "uchenik@" + ip + ":/home/uchenik/Material"], shell = True)
-        text="Загрузка файла %s на %s OK\n" % (file_, ip)
+        text="OK"
     except:
-        text="Загрузка файла %s на %s ERROR\n" % (file_, ip)
-    tex.insert(END, text)
+        text="ERROR"
+    tex[ip].insert(END, text)
 	
 def com_download(ip, file_):
-	try:
-		check_call(["scp -r " + ip + ":/home/uchenik/Rabota/* " + file_], shell = True)
-		text="%s %s OK\n" % (command, ip)
-	except:
-		text="%s %s ERROR\n" % (command, ip)
-	tex.insert(END, text)
+    try:
+        check_call(["scp -r " + ip + ":/home/uchenik/Rabota/* " + file_ + "/" + ip], shell = True)
+        #check_call(["touch  " + file_ + "/" + ip], shell = True)
+        text="OK"
+        com_uchenik(ip, "rm -r /home/uchenik/Rabota/*")
+    except:
+        text="ERROR"
+    tex[ip].insert(END, text)
 
 # Кнопки
 
 def button_ping(event):
-    text_command.insert(END, "Ping")
+    info("Ping")
     ip_list.clear()
     for ip in ip_list_all:
         tex[ip].delete(0,END)
         threading.Thread(target=ping_class, args=[ip]).start()
 
 def button_update(event):
-    text_command.insert(END, "Обновляем")
+    info("Обновляем")
     for ip in ip_list_all:
         tex[ip].delete(0,END) 
-        print("Обновляем %s ...\r" % (ip), end="")
         threading.Thread(target=update, args=[ip]).start()
 
 def button_ntpdate(event):
-    text_command.insert(END, "ntpdate")
+    info("ntpdate")
     for ip in ip_list:  
         tex[ip].delete(0,END)
         threading.Thread(target=com, args=[ip, 'ntpdate -s 192.168.10.1']).start()
 
 def button_reboot(event):
-    text_command.insert(END, "Перезагружаем")
+    info("Перезагружаем")
     for ip in ip_list:
         threading.Thread(target=com, args=[ip, 'reboot']).start()
 
 def button_shutdown(event):
-    print("Выключаем %s ...\r" % (ip), end="")
+    text_command.insert(END, "Выключаем")
+    info("Выключаем")
     for ip in ip_list:
         threading.Thread(target=shutdown, args=[ip]).start()     
 
 def button_com(event):
-    text_command.delete(0,END)
-    text_command.insert(END, "Команда")
+    info("Команда")
     for ip in ip_list:
         tex[ip].delete(0,END)
         threading.Thread(target=com, args=[ip, ent.get()]).start()
@@ -121,29 +128,36 @@ def button_com(event):
 
 def button_link(event):
     s = ent.get()
-    text_command.delete(0,END)
-    text_command.insert(END, "Открыть ссылку")
+    info("Открыть ссылку")
     for ip in ip_list:
-        threading.Thread(target=com_uchenik, args=[ip, 'firefox \"%s\"' % s ]).start()
+        threading.Thread(target=com_uchenik, args=[ip, 'export DISPLAY=:0; firefox \"%s\"' % s ]).start()
         
 def button_send(event):
     s = ent.get()
-    text_command.delete(0,END)
-    text_command.insert(END, "Сообщение")
+    info("Сообщение")
     for ip in ip_list:
         tex[ip].delete(0,END)
         threading.Thread(target=com_uchenik, args=[ip, 'export DISPLAY=:0; notify-send "Система оповещения" "%s"' % s ]).start()
 
 def button_upload(event):
-    print("Загрузить файл")
+    info("Загрузить файл")
+    op = askopenfilename()
     for ip in ip_list:
-        threading.Thread(target=com_upload, args=[ip, 'firefox \"438school.spb.ru\"']).start()
+        threading.Thread(target=com_upload, args=[ip, op]).start()
 
 def button_download(event):
-    print("Собрать работы")
-    os.mkdir(dt, mode=0o777, dir_fd=None) 
-    for ip in ip_list:
-        threading.Thread(target=com_download, args=[ip, 'firefox \"438school.spb.ru\"']).start()
+    info("Собрать работы")
+    op = askdirectory()
+    if len(op)>1:
+        _dir = op + "/" + dt
+        os.mkdir(_dir, mode=0o750, dir_fd=None)
+        for ip in ip_list:
+            tex[ip].delete(0,END)
+            d = _dir + "/" + ip
+            os.mkdir(d, mode=0o750, dir_fd=None)
+            threading.Thread(target=com_download, args=[ip, d]).start()
+    else:
+        info("Упс...")
 
 # Меню
 
@@ -151,14 +165,11 @@ def new_win():
     win = Toplevel(root)
  
 def close_win():
-#     global root
-#     root.destroy()
-    root.quit()
+    if askyesno("Выход", "Вы уверены, что хотите выйти?"):
+        root.destroy()
  
 def about():
-    win = Toplevel(root)
-    lab = Label(win,text="Это просто программа-тест \n меню в Tkinter")
-    lab.pack() 
+    showinfo("Editor", "This is text editor.\n(test version)")
 
 # Окошки
 
@@ -249,8 +260,8 @@ ent.pack()
 
 # Старт системы
 
-print("Ping class")
-text_command.insert(END, "Ping")
+info("Ping class")
+
 
 for ip in ip_list_all:
     threading.Thread(target=ping_class, args=[ip]).start()
